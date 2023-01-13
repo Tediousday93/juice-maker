@@ -13,6 +13,8 @@
 <br/>
 
 ## 1. 소개
+생과일 쥬스를 만드는 객체와 과일저장소 객체의 상호작용을 통해 과일의 재고를 관리하는 프로그램
+
 ### **Step01**
 * **Model 구현**
 
@@ -23,11 +25,29 @@
       > * 각 과일의 수량 n개를 변경하는 메서드
       > * 각 과일의 재고를 확인하는 메서드
     - **JuiceMaker struct**
-      FruitStore의 과일을 사용해 과일쥬스를 제조하는 구조체 정의
+      FruitStore의 과일을 사용해 과일을 제조하는 구조체 정의
       <br/>
       > * 각 쥬스 별 들어가는 과일의 개수를 기록하는 Nested Type Juice 열거체
-      > * 쥬스를 만드는 make 메서드 
+      > * 쥬스를 만드는 make 메서드
 
+### **Step02**
+* **View Controller 구현**
+
+    - **MainViewController**
+        쥬스 주문 화면을 관리하는 ViewController 정의
+        <br/>
+        > * 각 과일의 재고를 표시하는 Label
+        > * 쥬스 주문 버튼의 ```@IBOutlet```, ```@IBAction```
+        > * 화면이 Load되었을 때, Label Text를 초기화하는 메서드
+        > * 재고가 부족할 때 띄워줄 Alert
+    <br/>
+    
+    - **Modal**
+        ```MainViewController```와 ```ChangeStockViewController```의 화면 전환 구현 
+        <br/>
+        > * Modal 방식을 통한 화면전환 구현 
+        > * Alert을 통한 화면전환
+        > * Button을 통한 화면전환
 
 <br/>
 
@@ -35,9 +55,10 @@
 
 
 | 송준 | Rowan |
-| -------- | -------- | 
+| :--------: | :--------:| 
 |   <Img src = "https://i.imgur.com/9Bd6NIT.png" width="200" height="200"/>  |  <Img src = "https://i.imgur.com/NP7PZ6m.png" width="200" height="200"/> |
-| <center>Driver, Navigator</center>  | <center>Driver, Navigator</center>     |
+| <center>Driver, Navigator</center>  | <center>Driver, Navigator</center>     
+| <center>[Github Profile](https://github.com/kimseongj)</center> | <center>[Github Profile](https://github.com/Kyeongjun2)</center> |
 
 
 
@@ -52,18 +73,29 @@
 23.01.04 (수) : PR 피드백을 통한 코드 리팩토링
 23.01.05 (목) : STEP 1. 머지 / STEP 2. 사전학습
 23.01.06 (금) : STEP 2. 진행 (뷰컨트롤러 정의, 화면전환 구현)
+23.01.09 (월) : STEP 2. 화면 구성, 변경 사항 전달을 위한 싱글턴 패턴 적용
+23.01.10 (화) : STEP 2. refactoring(컨벤션 수정, 주문 버튼 ```@IBAction``` 통합)
+23.01.11 (수) : STEP 2. 머지 / STEP 3. 사전학습
 
 <br/>
 
 ## 4. 프로젝트 구조
-~~2주차 추가 예정~~
+~~3주차 추가 예정~~
 <br/>
 
 ## 5. 실행 화면(기능 설명)
-~~2주차 추가 예정~~
+#### ◾️ 쥬스 주문 버튼 (성공)
+![쥬스메이커버튼클릭](https://user-images.githubusercontent.com/88870642/212242601-a006c81c-e6b1-4020-a8ab-e62be3c00c24.gif)
+- 각 쥬스 주문 버튼을 누르면 과일 하단 Label에 쥬스의 재료만큼 감소한 재고 변동사항을 반영
+
+#### ◾️ 쥬스 주문 버튼 (실패)  
+![쥬스메이커-얼럿](https://user-images.githubusercontent.com/88870642/212242609-0163ee2a-f9ec-42ca-9ad9-7763f8166c0a.gif)
+- 재고가 모자랄 경우, 주문 버튼을 누르면 재고 수정 화면으로 이동할 수 있도록 Alert를 띄워줌
+
 <br/>
 
 ## 6. 트러블 슈팅
+### STEP 1.
 ### 과일 재고 표현 및 초기값 할당
 - 3단계에 걸쳐 과일 재고를 표현하는 방법을 개선하였습니다.
 #### 1. 과일 클래스를 인스턴스화해서 과일/개수 할당
@@ -158,11 +190,183 @@ var fruitsStock = [Fruits: Int]()
 ```
 <br/>
 
+## STEP2.
+### ◾️ 값 타입? 참조 타입?
+
+#### 수정 전
+- 싱글톤 형태인 ```FruitStore.shared.fruitsStock``` 프로퍼티를 ```fruitsStock```변수로 선언했습니다. 
+- ```FruitStore.shared```의 경우 class로 참조타입이지만, ```FruitStore.shared.fruitsStock```은 일반 프로퍼티로 값타입입니다. 고로, 변수 선언 시 값이 복사가 되었습니다. 
+- Copy on Write에 의해 변경되기 전까지 같은 메모리를 참조하지만, 저희 프로그램의 경우 ```fruitsStock```의 변경이 일어나기 때문에, 값이 변경되는 문제점을 발견했습니다.
+```swift
+// 수정 전
+final class ViewController: UIViewController {
+    private let juiceMaker = JuiceMaker()
+    private var fruitsStock = FruitStore.shared.fruitsStock
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        displayStock()
+    }
+    
+    func displayStock() {
+        if let strawberryStock = fruitsStock[.strawberry],
+           ... {
+            stockOfStrawberry.text = String(strawberryStock)
+            ...
+        }
+    }
+    
+    @IBAction func orderStrawberryBananaJuice(_ sender: UIButton) {
+        do {
+            try juiceMaker.make(juice: .strawberryBanana)
+            displayStock()
+        } catch ... 
+    }
+}
+```
+#### 수정 후
+- 위의 문제점을 해결하기 위해 연산 프로퍼티를 사용하였습니다.
+- 연산 프로퍼티의 특징은 연산 실제 값을 수정하는 것이 아닌 ```getter```와 ```setter```를 통해 다른 속성과 값을 간접적으로 읽고, 쓸 수 있습니다.
+- 연산 프로퍼티를 통해 ```FruitStore.shared.fruitsStock```을 직접 반환해주는 코드를 구현했습니다.
+```swift
+// 수정 후
+final class ViewController: UIViewController {
+    private let juiceMaker = JuiceMaker()
+    private var fruitsStock: [Fruits: Int] {
+        return FruitStore.shared.fruitsStock
+    } 
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        displayStock()
+    }
+    
+    func displayStock() {
+        if let strawberryStock = fruitsStock[.strawberry],
+           ... {
+            stockOfStrawberry.text = String(strawberryStock)
+            ...
+        }
+    }
+    
+    @IBAction func orderStrawberryBananaJuice(_ sender: UIButton) {
+        do {
+            try juiceMaker.make(juice: .strawberryBanana)
+            displayStock()
+        } catch ... 
+    }
+}
+```
+<br/>
+
+### ◾️화면전환 방법
+#### 변경 전
+- ```self.navigationController?.pushViewController(nextVC, animated: true) ```를 통해 화면 전환 시 Navigation 방식으로 화면전환이 되었습니다.
+
+```swift
+func moveToChangeStockViewController() {
+    guard let nextVC = self.storyboard?.instantiateViewController(withIdentifier: "ChangeStock") as? ChangeStockViewController else { return }
+    self.navigationController?.pushViewController(nextVC, animated: true)  
+}
+```
+
+#### 변경 후
+- Navigation 방식의 경우 정보의 깊이가 깊어질 경우 사용하는 것인데, 재고 변경 화면은 기존의 쥬스를 주문하던 화면과는 다른 맥락이라고 생각하여 Modal 방식을 채택했습니다. 
+- ```pushViewController```를 ```present```로 변경했습니다.
+```swift
+func moveToChangeStockViewController() {
+    guard let nextVC = self.storyboard?.instantiateViewController(withIdentifier: "ChangeStock") as? ChangeStockViewController else { return }
+    self.navigationController?.present(nextVC, animated: true)
+}
+```
+
+<br/>
+
+### ◾️ 주문 버튼의 ```@IBAction``` 통합
+#### 수정 전
+* 주문 버튼 각각의 ```@IBAction```을 정의하여 7개의 같은 코드가 있었습니다.
+```swift
+@IBAction func orderStrawberryBananaJuice(_ sender: UIButton) {
+    do {
+        try juiceMaker.make(juice: .strawberryBanana)
+        setSuccessAlert(juice: .strawberryBanana)
+        displayStock()
+    } catch StockError.outOfStock {
+        setFailAlert()
+    } catch {
+        print(error)
+    }
+}
+
+@IBAction func orderPineappleJuice(_ sender: UIButton) {
+    do {
+        try juiceMaker.make(juice: .pineapple)
+        setSuccessAlert(juice: .pineapple)
+        displayStock()
+    } catch StockError.outOfStock {
+        setFailAlert()
+    } catch {
+        print(error)
+    }
+}
+
+@IBAction func orderKiwiJuice(_ sender: UIButton) {
+    // 위와 동일, juice == .kiwi
+}
+
+@IBAction func orderBananaJuice(_ sender: UIButton) {
+    // 위와 동일, juice == .banana
+}
+...
+```
+
+<br/>
+
+#### 수정 후
+* sender를 구분하는 메서드(```identifyJuice(of:)```)와 ```order(_:)```메서드를 추가하여 ```@IBAction```을 하나만 정의하고 7개의 버튼을 해당 Action에 연결했습니다.
+* 본 트러블슈팅을 통해 반복된 코드를 현저히 줄일 수 있었습니다.
+```swift
+@IBAction func pushOrderButton(_ sender: UIButton) {
+    guard let selectedJuice = identifyJuice(of: sender) else { return }
+
+    order(selectedJuice)
+}
+
+func identifyJuice(of button: UIButton) -> JuiceMaker.Juice? {
+    switch button {
+    case orderStrawberry: return .strawberry
+    case orderBanana: return .banana
+    case orderPineapple: return .pineapple
+    case orderKiwi: return .kiwi
+    case orderMango: return .mango
+    case orderStrawberryBanana: return .strawberryBanana
+    case orderMangoKiwi: return .mangoKiwi
+    default: return nil
+    }
+}
+
+ func order(_ juice: JuiceMaker.Juice) {
+    do {
+        try juiceMaker.make(juice: juice)
+        setSuccessAlert(juice: juice)
+        displayStock()
+    } catch StockError.outOfStock {
+        setFailAlert()
+    } catch {
+        print(error)
+    }
+}
+```
+
+
 ## 7. 참고 링크
 - [Nested Type - Swift Language Guide](https://docs.swift.org/swift-book/LanguageGuide/NestedTypes.html)
 - [Properties; Computed Property - Swift Language Guide](https://docs.swift.org/swift-book/LanguageGuide/Properties.html)
+- [NavigationController - Swift Language Guide](https://developer.apple.com/documentation/uikit/uinavigationcontroller)
+- [Type Casting - Swift Language Guide](https://docs.swift.org/swift-book/LanguageGuide/TypeCasting.html )
+- [Error Handling - Swift Language Guide](https://docs.swift.org/swift-book/LanguageGuide/ErrorHandling.html)
 <br/>
 
-## 8. 아쉬운 점
+
 
 
