@@ -8,7 +8,6 @@
 5. [실행화면(기능 설명)](#5-실행-화면기능-설명)
 6. [트러블슈팅](#6-트러블-슈팅)
 7. [참고링크](#7-참고-링크)
-8. [아쉬운점](#8-아쉬운-점)
 
 <br/>
 
@@ -68,14 +67,14 @@
 **프로젝트 진행 기간** 
 - **23.01.02 (월) ~ 23.01.20 (금)** 
 
->23.01.02 (월) : 참고자료 읽기, Model 기본 객체 및 메서드 정의 
-23.01.03 (화) : 변수명 / 함수 리팩토링, PR 보내기
-23.01.04 (수) : PR 피드백을 통한 코드 리팩토링
-23.01.05 (목) : STEP 1. 머지 / STEP 2. 사전학습
-23.01.06 (금) : STEP 2. 진행 (뷰컨트롤러 정의, 화면전환 구현)
-23.01.09 (월) : STEP 2. 화면 구성, 변경 사항 전달을 위한 싱글턴 패턴 적용
-23.01.10 (화) : STEP 2. refactoring(컨벤션 수정, 주문 버튼 ```@IBAction``` 통합)
-23.01.11 (수) : STEP 2. 머지 / STEP 3. 사전학습
+> 23.01.02 (월) : 참고자료 읽기, Model 기본 객체 및 메서드 정의 <br/>
+> 23.01.03 (화) : 변수명 / 함수 리팩토링, PR 보내기 <br/>
+> 23.01.04 (수) : PR 피드백을 통한 코드 리팩토링 <br/>
+> 23.01.05 (목) : STEP 1. 머지 / STEP 2. 사전학습 <br/>
+> 23.01.06 (금) : STEP 2. 진행 (뷰컨트롤러 정의, 화면전환 구현) <br/>
+> 23.01.09 (월) : STEP 2. 화면 구성, 변경 사항 전달을 위한 싱글턴 패턴 적용 <br/>
+> 23.01.10 (화) : STEP 2. refactoring(컨벤션 수정, 주문 버튼 ```@IBAction``` 통합) <br/>
+> 23.01.11 (수) : STEP 2. 머지 / STEP 3. 사전학습 <br/>
 
 <br/>
 
@@ -96,7 +95,10 @@
 
 ## 6. 트러블 슈팅
 ### STEP 1.
-### 과일 재고 표현 및 초기값 할당
+
+<details>
+<summary>과일 재고 표현 및 초기값 할당</summary>
+
 - 3단계에 걸쳐 과일 재고를 표현하는 방법을 개선하였습니다.
 #### 1. 과일 클래스를 인스턴스화해서 과일/개수 할당
 - 재고 변경 시, 각각의 과일 인스턴스를 참조하는 방법이 까다로웠습니다. 빈 배열을 하나 만들어서 각각의 과일 인스턴스들을 배열에 넣어주었고 재고 변경을 원하는 과일을 찾을 수 있도록 findFruit 메서드를 추가로 정의하였습니다.
@@ -132,6 +134,7 @@ class FruitStore {
     }
 }
 ```
+
 <br/>
 
 #### 2. Dictionary[String: Int]로 과일/개수 할당
@@ -190,13 +193,17 @@ var fruitsStock = [Fruits: Int]()
 ```
 <br/>
 
-## STEP2.
-### ◾️ 값 타입? 참조 타입?
+</details>
+
+### STEP2.
+
+<details>
+<summary>값 타입? 참조 타입?</summary>
 
 #### 수정 전
 - 싱글톤 형태인 ```FruitStore.shared.fruitsStock``` 프로퍼티를 ```fruitsStock```변수로 선언했습니다. 
-- ```FruitStore.shared```의 경우 class로 참조타입이지만, ```FruitStore.shared.fruitsStock```은 일반 프로퍼티로 값타입입니다. 고로, 변수 선언 시 값이 복사가 되었습니다. 
-- Copy on Write에 의해 변경되기 전까지 같은 메모리를 참조하지만, 저희 프로그램의 경우 ```fruitsStock```의 변경이 일어나기 때문에, 값이 변경되는 문제점을 발견했습니다.
+- ```FruitStore.shared```의 경우 class로 참조타입이지만, ```FruitStore.shared.fruitsStock```은 일반 프로퍼티로 값타입입니다. 값타입 프로퍼티를 새로운 변수에 할당했기 때문에 재고 변경 시 값의 복사가 일어났습니다. 
+- **Copy on Write**에 의해 변경되기 전까지 같은 메모리를 참조하지만, 저희 프로그램의 경우 ```fruitsStock```의 변경이 일어나기 때문에 싱글톤 인스턴스의 프로퍼티를 참조할 수 없는 문제점을 발견했습니다.
 ```swift
 // 수정 전
 final class ViewController: UIViewController {
@@ -258,8 +265,11 @@ final class ViewController: UIViewController {
 }
 ```
 <br/>
+</details>
 
-### ◾️화면전환 방법
+<details>
+<summary>화면전환 방법</summary>
+
 #### 변경 전
 - ```self.navigationController?.pushViewController(nextVC, animated: true) ```를 통해 화면 전환 시 Navigation 방식으로 화면전환이 되었습니다.
 
@@ -281,8 +291,11 @@ func moveToChangeStockViewController() {
 ```
 
 <br/>
+</details>
 
-### ◾️ 주문 버튼의 ```@IBAction``` 통합
+<details>
+<summary>주문 버튼의 @IBAction 통합</summary>
+
 #### 수정 전
 * 주문 버튼 각각의 ```@IBAction```을 정의하여 7개의 같은 코드가 있었습니다.
 ```swift
@@ -357,6 +370,7 @@ func identifyJuice(of button: UIButton) -> JuiceMaker.Juice? {
     }
 }
 ```
+</details>
 
 
 ## 7. 참고 링크
