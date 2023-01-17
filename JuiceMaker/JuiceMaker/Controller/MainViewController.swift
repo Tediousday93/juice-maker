@@ -4,7 +4,11 @@
 
 import UIKit
 
-final class MainViewController: UIViewController {
+protocol DeliveryData: AnyObject {
+    func displayStock()
+}
+
+final class MainViewController: UIViewController, DeliveryData {
     
     private enum AlertMessege {
         static let confirm = "확인"
@@ -37,14 +41,12 @@ final class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        guard let vc = self.storyboard?.instantiateViewController(withIdentifier: "ChangeStock") as? ChangeStockViewController else { return }
+        vc.delegate = self
         displayStock()
-        NotificationCenter.default.addObserver(self,
-                           selector: #selector(displayStock),
-                           name: Notification.Name.fruitStockChanged,
-                           object: nil)
     }
     
-    @objc func displayStock() {
+    func displayStock() {
         if let strawberryStock = fruitsStock[.strawberry],
            let bananaStock = fruitsStock[.banana],
            let pineappleStock = fruitsStock[.pineapple],

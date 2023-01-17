@@ -6,6 +6,8 @@ import UIKit
 
 final class ChangeStockViewController: UIViewController {
     
+    weak var delegate: DeliveryData?
+    
     @IBOutlet weak var navigationBar: UINavigationItem!
     
     @IBOutlet weak var stockOfStrawberry: UILabel!
@@ -35,10 +37,11 @@ final class ChangeStockViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
-        NotificationCenter.default.post(name: Notification.Name.fruitStockChanged, object: nil)
+        print("123")
+        self.delegate?.displayStock()
     }
     
-    private func displayStock() {
+    func displayStock() {
         if let strawberryStock = fruitsStock[.strawberry],
            let bananaStock = fruitsStock[.banana],
            let pineappleStock = fruitsStock[.pineapple],
