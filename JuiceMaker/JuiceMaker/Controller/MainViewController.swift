@@ -41,8 +41,6 @@ final class MainViewController: UIViewController, DeliveryData {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        guard let vc = self.storyboard?.instantiateViewController(withIdentifier: "ChangeStock") as? ChangeStockViewController else { return }
-        vc.delegate = self
         displayStock()
     }
     
@@ -66,6 +64,7 @@ final class MainViewController: UIViewController, DeliveryData {
     
     private func moveToChangeStockViewController() {
         guard let nextVC = self.storyboard?.instantiateViewController(withIdentifier: "ChangeStock") as? ChangeStockViewController else { return }
+        nextVC.delegate = self
         self.navigationController?.present(nextVC, animated: true)
     }
     
