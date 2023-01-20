@@ -37,7 +37,6 @@ final class ChangeStockViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(true)
-        print("123")
         self.delegate?.displayStock()
     }
     
